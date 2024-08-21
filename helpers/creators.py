@@ -16,47 +16,66 @@ def populate_game(game: Game) -> None:
     :param game: The game entity to be populated.
     :return: None
     """
-    cities = game.list(City)
+    cities = game.lists(City)
+    uid_team = game.count(spr.Team) + 1
+    uid_squad = game.count(spr.Squad) + 1
+    uid_player = game.count(spr.Player) + 1
+    # print(f'Team: {uid_team}, Squad: {uid_squad}, Player: {uid_player}')
+    no_check = True
     with alive_bar(len(cities), force_tty=True) as bar:
         for city in cities:
-            qtd_teams = city.max_teams
-            teams: list[spr.Team] = []
             squads: list[spr.Squad] = []
             players: list[spr.Player] = []
-            for _ in range(0, max(qtd_teams.values())):
-                team = create_team(game, city)
-                teams.append(team)
-                # print(f'Created team: {team}')
-            while not all(value == 0 for value in qtd_teams.values()):
-                for category in [Category.age_15_17, Category.age_18_19, Category.age_20_24, Category.age_25_29,
-                                 Category.age_30_up]:
+            qtd_teams = city.max_teams
+            teams = create_many_teams(max(qtd_teams.values()), uid_team, city)
+            uid_team = uid_team + max(qtd_teams.values())
+            for category in [Category.age_15_17, Category.age_18_19, Category.age_20_24, Category.age_25_29,
+                             Category.age_30_up]:
+                no_squad_qtd = random.randint(3, 5) * qtd_teams[category]
+                no_squad_players = create_many_players(no_squad_qtd, uid_player, category, None)
+                uid_player = uid_player + no_squad_qtd
+                players = players + no_squad_players
+                for team in teams:
                     if qtd_teams[category] > 0:
-                        try:
-                            team = teams[max(qtd_teams.values()) - 1]
-                        except IndexError:
-                            print(f'{max(qtd_teams.values()) - 1}/{len(teams)} in {category} at {city.name}')
-                        squad = create_squad(game, category, team)
+                        squad = create_squad(uid_squad, category, team)
+                        uid_squad = uid_squad + 1
                         squads.append(squad)
-                        # print(f'Created squad: {squad}')
-                        for _ in range(Decoder.ATHLETES_IN_SQUAD):
-                            player = create_player(game, category, squad)
-                            players.append(player)
-                            # print(f'Created {team}, {squad.name} player: {player}')
-                        for _ in range(3):
-                            player = create_player(game, category, None)
-                            players.append(player)
-                            # print(f'Created no team/squad player: {player}')
+                        squad_players = create_many_players(Decoder.ATHLETES_IN_SQUAD, uid_player, category, squad)
+                        uid_player = uid_player + Decoder.ATHLETES_IN_SQUAD
+                        players = players + squad_players
                         qtd_teams[category] = qtd_teams[category] - 1
-                    # print(f'Ended category {category}')
-                # print(f'Check if all are 0: {qtd_teams.values()}')
-            # print(f'{cities.index(city)} of {len(cities)}')
+            for team in teams:
+                game.insert(team, no_check)
+            for squad in squads:
+                game.insert(squad, no_check)
+            for player in players:
+                game.insert(player, no_check)
+            # print(f'Em {city.name} - {city.state().abbreviation} temos:'
+            #       f'\t{len(teams)} time(s), {len(squads)} equipe(s) e {len(players)} jogadores.')
             bar()
 
 
-def create_player(game: Game, category: Category, squad: spr.Squad | None = None) -> spr.Player:
-    players = game.list(spr.Player)
-    uid = len(players) + 1
+def create_player(uid: int, category: Category, squad: spr.Squad | None = None) -> spr.Player:
     (name, surname) = generate_person_names()[0]
+    age = random_age_by_category(category)
+    skill = numpy.random.poisson(45)
+    return spr.Player(uid, name, surname, age, skill, squad)
+
+
+def create_many_players(quantity: int,
+                        initial_uid: int, category: Category, squad: spr.Squad | None) -> list[spr.Player]:
+    players: list[spr.Player] = []
+    names = generate_person_names(quantity)
+    for i in range(quantity):
+        uid = initial_uid + i
+        (name, surname) = names[i]
+        age = random_age_by_category(category)
+        skill = numpy.random.poisson(45)
+        players.append(spr.Player(uid, name, surname, age, skill, squad))
+    return players
+
+
+def random_age_by_category(category: Category) -> int:
     if category is Category.age_15_17:
         age = random.randint(15, 17)
     elif category is Category.age_18_19:
@@ -69,43 +88,29 @@ def create_player(game: Game, category: Category, squad: spr.Squad | None = None
         age = random.randint(30, 40)
     if age == 40:  # shake things up from 40+ age
         age = random.randint(40, 50)
-    skill = numpy.random.poisson(45)
-    player = spr.Player(uid, name, surname, age, skill, squad)
-    game.insert(player)
-    return player
+    return age
 
 
-def create_squad(game: Game, category: Category, team: spr.Team) -> spr.Squad:
-    squads = game.list(spr.Squad)
-    uid = len(squads) + 1
+def create_squad(uid: int, category: Category, team: spr.Team) -> spr.Squad:
     name = gen.Colors.random()
-    squad = spr.Squad(uid, name, category, team)
-    game.insert(squad)
-    return squad
+    return spr.Squad(uid, name, category, team)
 
 
-def create_team(game: Game, city: City) -> spr.Team:
-    teams = game.list(spr.Team)
-    uid = len(teams) + 1
+def create_team(uid: int, city: City) -> spr.Team:
     name = generate_team_names()[0]
-    team = spr.Team(uid, name, city)
-    game.insert(team)
-    return team
+    return spr.Team(uid, name, city)
 
 
-def create_many_teams(game: Game, quantity: int) -> list[spr.Team]:
+def create_many_teams(quantity: int, initial_uid: int, city: City) -> list[spr.Team]:
     teams = []
     if quantity < 1:
         return teams
-    base = len(game.list(spr.Team))
-    for index in range(0, quantity):
-        uid = index + base + 1
+    for index in range(quantity):
+        uid = index + initial_uid
         name = generate_team_names(1)[0]
-        city = random.choice(game.list(City))
         team = spr.Team(uid, name, city)
         teams.append(team)
-        game.insert(team)
-    return list(set(teams).intersection(game.list(spr.Team)))
+    return teams
 
 
 def import_locations():
