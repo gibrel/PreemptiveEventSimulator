@@ -32,7 +32,7 @@ def populate_game(game: Game) -> None:
             for category in [Category.age_15_17, Category.age_18_19, Category.age_20_24, Category.age_25_29,
                              Category.age_30_up]:
                 no_squad_qtd = random.randint(3, 5) * qtd_teams[category]
-                no_squad_players = create_many_players(no_squad_qtd, uid_player, category, None)
+                no_squad_players = create_many_players(no_squad_qtd, uid_player, category)
                 uid_player = uid_player + no_squad_qtd
                 players = players + no_squad_players
                 for team in teams:
@@ -63,7 +63,7 @@ def create_player(uid: int, category: Category, squad: spr.Squad | None = None) 
 
 
 def create_many_players(quantity: int,
-                        initial_uid: int, category: Category, squad: spr.Squad | None) -> list[spr.Player]:
+                        initial_uid: int, category: Category, squad: spr.Squad | None = None) -> list[spr.Player]:
     players: list[spr.Player] = []
     names = generate_person_names(quantity)
     for i in range(quantity):
@@ -86,8 +86,13 @@ def random_age_by_category(category: Category) -> int:
         age = random.randint(25, 29)
     else:  # category is Category.age_30_up:
         age = random.randint(30, 40)
-    if age == 40:  # shake things up from 40+ age
-        age = random.randint(40, 50)
+    if age >= 40:  # shake things up from 40+ age using poison distribution and probability
+        if random.choices([True, False], [1/10, 9/10])[0]:
+            age = 40
+        else:
+            age = numpy.random.poisson(40)
+            diff = abs(age - 40)
+            age = 40 + diff
     return age
 
 
