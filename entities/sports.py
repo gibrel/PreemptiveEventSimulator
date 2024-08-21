@@ -15,7 +15,8 @@ class Team(Base):
         self.city = city
 
     def __str__(self) -> str:
-        return f'{self.uid} \t| {self.name} \t| {self.city.name}'
+        return (f'{self.uid}\t|\t{self.name}\t|'
+                f'\t{self.city.name} - {self.city.state().abbreviation}')
 
 
 class Squad(Base):
@@ -42,7 +43,7 @@ class Player(Base):
     skill: int
     squad: Squad | None
 
-    def __init__(self, uid: int, name: str, surname: str, age: int, skill: int, squad: Squad | None):
+    def __init__(self, uid: int, name: str, surname: str, age: int, skill: int, squad: Squad | None = None):
         super().__init__(uid, name)
         self.surname, self.age, self.skill, self.squad = surname, age, skill, squad
 

@@ -86,7 +86,10 @@ class MicroRegion(Location):
         self.medium_region = medium_region
 
     def __str__(self) -> str:
-        return f'{self.uid}\t|\t{self.name}\t|\t{self.medium_region.name} - {self.medium_region.state.abbreviation}'
+        return f'{self.uid}\t|\t{self.name}\t|\t{self.medium_region.name} - {self.state().abbreviation}'
+
+    def state(self) -> State:
+        return self.medium_region.state
 
 
 class ImmediateRegion(Location):
@@ -101,7 +104,10 @@ class ImmediateRegion(Location):
 
     def __str__(self) -> str:
         return (f'{self.uid}\t|\t{self.name}\t|\t{self.intermediate_region.name}'
-                f' - {self.intermediate_region.state.abbreviation}')
+                f' - {self.state().abbreviation}')
+
+    def state(self) -> State:
+        return self.intermediate_region.state
 
 
 class City(Location):
@@ -122,4 +128,7 @@ class City(Location):
                           Category.age_25_29: 0, Category.age_30_up: 0}
 
     def __str__(self) -> str:
-        return f'{self.uid}\t|\t{self.name}\t|\t{self.micro_region.medium_region.state.abbreviation}'
+        return f'{self.uid}\t|\t{self.name}\t|\t{self.state().abbreviation}'
+
+    def state(self) -> State:
+        return self.micro_region.medium_region.state
