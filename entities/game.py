@@ -51,55 +51,19 @@ class Game:
             print(f'[IndexError]: {e.args}')
             return False
 
-    def check(self, obj_type: Type[T], uid: int | None = None, name: str | None = None) -> bool:
+    def get_first(self, obj_type: Type[T], filters=None) -> T | None:
         """
 
         :param obj_type:
-        :param uid:
-        :param name:
-        :return:
-        """
-        if obj_type not in self._CLASSES:
-            return False
-        try:
-            if name is not None and uid is not None:
-                return any((entity for entity in self._lists[obj_type] if entity.uid == uid and entity.name == name))
-            elif uid is not None:
-                return any((entity for entity in self._lists[obj_type] if entity.uid == uid))
-            elif name is not None:
-                return any((entity for entity in self._lists[obj_type] if entity.name == name))
-            else:
-                return False
-        except TypeError as e:
-            print(f'[TypeError]: {e.args}')
-            return False
-        except KeyError as e:
-            print(f'[KeyError]: {e.args}')
-            return False
-        except IndexError as e:
-            print(f'[IndexError]: {e.args}')
-            return False
-
-    def get_first(self, obj_type: Type[T], uid: int | None = None, name: str | None = None) -> T | None:
-        """
-
-        :param obj_type:
-        :param uid:
-        :param name:
+        :param filters:
         :return:
         """
         if obj_type not in self._CLASSES:
             return None
         try:
-            if name is not None and uid is not None:
-                return next((entity for entity in self._lists[obj_type] if entity.uid == uid and entity.name == name),
-                            None)
-            elif uid is not None:
-                return next((entity for entity in self._lists[obj_type] if entity.uid == uid), None)
-            elif name is not None:
-                return next((entity for entity in self._lists[obj_type] if entity.name == name), None)
-            else:
+            if filters is None:
                 return self._lists[obj_type][0]
+            return next((entity for entity in self._lists[obj_type] if filters(entity)))
         except TypeError as e:
             print(f'[TypeError]: {e.args}')
             return None
@@ -123,7 +87,6 @@ class Game:
             if no_check:
                 self._lists[type(obj)].append(obj)
                 return True
-            # if not self.check(type(obj), obj.uid):
             if not self.contains(type(obj), lambda entity: entity.uid == obj.uid):
                 self._lists[type(obj)].append(obj)
                 return True
