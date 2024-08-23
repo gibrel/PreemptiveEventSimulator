@@ -102,6 +102,19 @@ class Game:
             print(f'[IndexError]: {e.args}')
             return False
 
+    def insert_many(self, objects: list[T], no_check: bool = False) -> (bool, list[T]):
+        print(f'[insert_many] len={len(objects)}')
+        success = True
+        failed_insertions: list[T] = []
+        if len(objects) < 1:
+            return not success, objects
+        for obj in objects:
+            obj_success = self.insert(obj, no_check)
+            success = success and obj_success
+            if not obj_success:
+                failed_insertions.insert(obj)
+        return success, failed_insertions
+
     def lists(self, obj_type: Type[T], filters=None) -> list[T]:
         """
 
