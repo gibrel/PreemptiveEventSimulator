@@ -45,6 +45,9 @@ class State(Location):
 
     def __str__(self) -> str:
         return f'{self.uid}\t|\t{self.name}\t|\t{self.abbreviation}\t|\t{self.region.name}'
+    
+    def country(self) -> Country:
+        return self.region.country
 
 
 class MediumRegion(Location):
@@ -59,6 +62,12 @@ class MediumRegion(Location):
 
     def __str__(self) -> str:
         return f'{self.uid}\t|\t{self.name}\t|\t{self.state.name}'
+    
+    def region(self) -> Region:
+        return self.state.region
+    
+    def country(self) -> Country:
+        return self.state.region.country
 
 
 class IntermediateRegion(Location):
@@ -73,6 +82,12 @@ class IntermediateRegion(Location):
 
     def __str__(self) -> str:
         return f'{self.uid}\t|\t{self.name}\t|\t{self.state.name}'
+    
+    def region(self) -> Region:
+        return self.state.region
+    
+    def country(self) -> Country:
+        return self.state.region.country
 
 
 class MicroRegion(Location):
@@ -90,6 +105,12 @@ class MicroRegion(Location):
 
     def state(self) -> State:
         return self.medium_region.state
+    
+    def region(self) -> Region:
+        return self.medium_region.state.region
+    
+    def country(self) -> Country:
+        return self.medium_region.state.region.country
 
 
 class ImmediateRegion(Location):
@@ -108,6 +129,12 @@ class ImmediateRegion(Location):
 
     def state(self) -> State:
         return self.intermediate_region.state
+    
+    def region(self) -> Region:
+        return self.intermediate_region.state.region
+    
+    def country(self) -> Country:
+        return self.intermediate_region.state.region.country
 
 
 class City(Location):
@@ -130,5 +157,17 @@ class City(Location):
     def __str__(self) -> str:
         return f'{self.uid}\t|\t{self.name}\t|\t{self.state().abbreviation}'
 
+    def intermediate_region(self) -> IntermediateRegion:
+        return self.immediate_region.intermediate_region
+    
+    def medium_region(self) -> MediumRegion:
+        return self.micro_region.medium_region
+
     def state(self) -> State:
         return self.micro_region.medium_region.state
+    
+    def region(self) -> Region:
+        return self.micro_region.medium_region.state.region
+    
+    def country(self) -> Country:
+        return self.micro_region.medium_region.state.region.country
