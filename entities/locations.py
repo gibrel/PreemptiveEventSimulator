@@ -189,16 +189,11 @@ class City(Location):
         return (
             f"\n\t{self.name} - {self.state().abbreviation}\n\n"
             + f"\t\tEstado:\t{self.state().name} - {self.state().abbreviation}\n"
-            + f"\t\tRegião Intermediária:\t{self.intermediate_region().name}\n"
-            + f"\t\tRegião Imediata:\t{self.immediate_region.name}\n"
-            + f"\t\tMeso Região:\t{self.medium_region().name}\n"
-            + f"\t\tMicro Região:\t{self.micro_region.name}\n\n"
+            + f"\t\tRegião Intermediária:\t{self.intermediate_region().name}\t\tRegião Imediata:\t{self.immediate_region.name}\n"
+            + f"\t\tMeso Região:\t{self.medium_region().name}\t\tMicro Região:\t{self.micro_region.name}\n\n"
             + "\t\tPopulação:\n"
-            + f"\t\t\tDe  15 a 17:\t{self.inhabitants[Category.age_15_17]}\n"
-            + f"\t\t\tDe  18 a 19:\t{self.inhabitants[Category.age_18_19]}\n"
-            + f"\t\t\tDe  20 a 24:\t{self.inhabitants[Category.age_20_24]}\n"
-            + f"\t\t\tDe  25 a 29:\t{self.inhabitants[Category.age_25_29]}\n"
-            + f"\t\t\tAcima de 30:\t{self.inhabitants[Category.age_30_up]}\n\n"
+            + f"\t\t\tDe  15 a 17:\t{self.inhabitants[Category.age_15_17]}\t\t\tDe  18 a 19:\t{self.inhabitants[Category.age_18_19]}\t\t\tDe  20 a 24:\t{self.inhabitants[Category.age_20_24]}\n"
+            + f"\t\t\tDe  25 a 29:\t{self.inhabitants[Category.age_25_29]}\t\t\tAcima de 30:\t{self.inhabitants[Category.age_30_up]}\n\n"
         )
 
     def intermediate_region(self) -> IntermediateRegion:

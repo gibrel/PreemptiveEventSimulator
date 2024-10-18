@@ -11,3 +11,7 @@ Screen {
 #body {
     background: $success-darken-3;
 }
+
+RadioSet {
+    width: 45%;
+}
