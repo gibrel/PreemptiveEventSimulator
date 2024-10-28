@@ -17,16 +17,21 @@ Screen {
 
 #content {
     background: $primary-background-darken-1;
-    height: 100%;
+    height: 50%;
 }
 
-#radio {
+#teamContent {
+    background: $primary-background-darken-1;
+    height: 50%;
+}
+
+#list {
     width: 50%;
     height: 100%;
     border: solid green;
 }
 
-#radioSet {
+#listView {
     width: 100%;
-    height: 99%;
+    height: 100%;
 }

@@ -1,7 +1,8 @@
 from __future__ import annotations
+from os import name
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
-from textual.widgets import Footer, Header, Static, Tree, Label, RadioButton, RadioSet
+from textual.widgets import Footer, Header, Static, Tree, Label, RadioButton, RadioSet, ListItem, ListView
 import helpers.creators as cre
 from entities.game import Game
 import entities.locations as loc
@@ -10,22 +11,25 @@ import entities.sports as spr
 
 GAME = Game()
 
-class RadioModule(Static):
+class ListModule(Static):
 
     def compose(self) -> ComposeResult:
-        yield Label("TIMES", id="radio_label")
-        yield RadioSet(id="radioSet")
+        yield Label("TIMES", id="listLabel")
+        yield ListView(id="listView")
 
 class BodyModule(Static):
+    MUSSUM_IPSUM = "\n\tMussum Ipsum, cacilds vidis litro abertis.  Pra lá, depois divoltis porris, paradis. Mé faiz elementum girarzis, nisi eros vermeio. Delegadis gente finis, bibendum egestas augue arcu ut est. Em pé sem cair, deitado sem dormir, sentado sem cochilar e fazendo pose."
 
     def compose(self) -> ComposeResult:
-        yield Label("CIDADE", id="body_label")
-        yield Static("\n\tMussum Ipsum, cacilds vidis litro abertis.  Pra lá, depois divoltis porris, paradis. Mé faiz elementum girarzis, nisi eros vermeio. Delegadis gente finis, bibendum egestas augue arcu ut est. Em pé sem cair, deitado sem dormir, sentado sem cochilar e fazendo pose.", id="content")
+        yield Label("CIDADE", id="bodyLabel")
+        yield Static(self.MUSSUM_IPSUM, id="content")
+        yield Label("TEAM", id="teamLabel")
+        yield Static(self.MUSSUM_IPSUM, id="teamContent")
 
 class TreeModule(Static):
 
     def compose(self) -> ComposeResult:
-        yield Label("LOCALIZAÇÃO", id="tree_label")
+        yield Label("LOCALIZAÇÃO", id="treeLabel")
         yield Tree(GAME.get_first(loc.Country).name, id="locations")
 
 class ScreenModule(Static):
@@ -34,7 +38,7 @@ class ScreenModule(Static):
         with Horizontal():
             yield TreeModule(id="tree")
             yield BodyModule(id="body")
-            yield RadioModule(id="radio")
+            yield ListModule(id="list")
 
 class PreemptiveEventSimulatorApp(App):
     BINDINGS = [
@@ -74,6 +78,7 @@ class PreemptiveEventSimulatorApp(App):
     def on_tree_node_highlighted(self, event: Tree.NodeHighlighted) -> None:
         node = event.node
         if node.data.__class__ is loc.City:
+            self.selectedCity = node.data
             body = self.query_one("#content")
             body.update(f'{self.print_city_data(node.data)}')
             self.refresh_teams(node.data)
@@ -85,13 +90,19 @@ class PreemptiveEventSimulatorApp(App):
     def refresh_teams(self, city: loc.City | None) -> None:
         if city is not None:
             teams = GAME.lists(spr.Team, lambda x: x.city == city)
-            radioSet = self.query_one(RadioSet)
-            radioSet.remove_children()
+            listView = self.query_one(ListView)
+            listView.remove_children()
             for team in teams:
-                radioSet.mount(RadioButton(team.name))
+                listView.mount(ListItem(Label(team.name), name=team.name))
 
-    def on_radio_set_changed(self, event: RadioSet.Changed) -> None:
-        event.pressed.focus()
+    def on_list_view_selected(self, event: ListView.Selected) -> None:
+        teamName = event.item.name
+        teamContent = self.query_one("#teamContent")
+        if self.selectedCity is None:
+            teamContent.update(f"{teamName}")
+        else:
+            team = GAME.get_first(spr.Team, lambda x: x.city == self.selectedCity and x.name == teamName )
+            teamContent.update(f"\n{self.selectedCity.name}\n{team.name}\n{teamName}")
 
 
 if __name__ == "__main__":
